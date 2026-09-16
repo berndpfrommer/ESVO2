@@ -1,17 +1,14 @@
 #ifndef ESVO2_CORE_CONTAINER_DEPTHPOINT_H
 #define ESVO2_CORE_CONTAINER_DEPTHPOINT_H
 
+#include <Eigen/Dense>
 #include <memory>
 #include <stdlib.h>
-#include <Eigen/Eigen>
 
-namespace esvo2_core
-{
-namespace container
-{
-class DepthPoint
-{
-  public:
+namespace esvo2_core {
+namespace container {
+class DepthPoint {
+public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   typedef std::shared_ptr<DepthPoint> Ptr;
 
@@ -46,36 +43,37 @@ class DepthPoint
 
   void boundVariance();
 
-  void update(double invDepth, double variance);// Gaussian distribution
-  void update_studentT(double invDepth, double scale2, double variance, double nu); // T distribution
+  void update(double invDepth, double variance); // Gaussian distribution
+  void update_studentT(double invDepth, double scale2, double variance,
+                       double nu); // T distribution
 
   void update_p_cam(const Eigen::Vector3d &p);
   const Eigen::Vector3d &p_cam() const;
 
-  void updatePose(Eigen::Matrix<double, 4, 4> &T_world_cam);// used in the fusion of each newly estimate.
-  // Therefore, it is not necessary to call updatePose for those created in the fusion. Because those share
-  // the pose of the fused depthFrame.
+  void
+  updatePose(Eigen::Matrix<double, 4, 4>
+                 &T_world_cam); // used in the fusion of each newly estimate.
+  // Therefore, it is not necessary to call updatePose for those created in the
+  // fusion. Because those share the pose of the fused depthFrame.
 
   const Eigen::Matrix<double, 4, 4> &T_world_cam() const;
 
   bool valid() const;
-  bool valid(double var_threshold,
-             double age_threshold,
-             double invDepth_max,
+  bool valid(double var_threshold, double age_threshold, double invDepth_max,
              double invDepth_min) const;
 
-  //copy an element without the location
+  // copy an element without the location
   void copy(const DepthPoint &copy);
 
-  private:
-  //coordinates in the image
+private:
+  // coordinates in the image
   size_t row_;
   size_t col_;
   Eigen::Vector2d x_;
 
-  //inverse depth parameters
+  // inverse depth parameters
   double invDepth_;
-  double scaleSquared_;// squared scale
+  double scaleSquared_; // squared scale
   double nu_;
   double variance_;
   double residual_;
@@ -83,11 +81,11 @@ class DepthPoint
   // count the number of fusion has been applied on a depth point
   size_t age_;
 
-  //3D point (updated in reference frame before tracking)
+  // 3D point (updated in reference frame before tracking)
   Eigen::Vector3d p_cam_;
   Eigen::Matrix<double, 4, 4> T_world_cam_;
 };
-}
-}
+} // namespace container
+} // namespace esvo2_core
 
-#endif //ESVO2_CORE_CONTAINER_DEPTHPOINT_H
+#endif // ESVO2_CORE_CONTAINER_DEPTHPOINT_H

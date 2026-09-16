@@ -1,42 +1,33 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.16)
 project(esvo2_core)
+
 # explicitly set std=c++14 to remove errors from pcl library
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3")
-set(CMAKE_CXX_FLAGS "-O3")
+# set(CMAKE_CXX_FLAGS "-O3")
 
-set(CMAKE_BUILD_TYPE "Release")
-# set(CMAKE_CXX_FLAGS "-std=c++14")
-
-# set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
-
-
-
-find_package(catkin_simple REQUIRED)
-catkin_simple(ALL_DEPS_REQUIRED)
-
-find_package(OpenCV REQUIRED)
-
-# FIND_PACKAGE(Sophus REQUIRED)
-# INCLUDE_DIRECTORIES(${Sophus_INCLUDE_DIRS})
-
-find_package(fmt REQUIRED)
-include_directories(${fmt_INCLUDE_DIRS})
-
+find_package(ament_cmake REQUIRED)
+find_package(cv_bridge REQUIRED)
 find_package(Ceres REQUIRED)
-include_directories(${CERES_INCLUDE_DIRS})
-
-include_directories(
-  ${PROJECT_SOURCE_DIR}/include)
-###########
-## Build ##
-###########
-
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
-include_directories(include)
+find_package(Eigen3 REQUIRED)
+find_package(event_camera_msgs REQUIRED)
+find_package(event_camera_codecs REQUIRED)
+find_package(events_repackaging_msgs REQUIRED)
+find_package(fmt REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(minkindr REQUIRED)
+find_package(minkindr_conversions REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(pcl_ros REQUIRED)
+find_package(PCL REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 
 set(HEADERS
   include/esvo2_core/core/DepthFusion.h
@@ -84,18 +75,53 @@ set(SOURCES
   src/tools/cayley.cpp
   )
 
-cs_add_library(${PROJECT_NAME}_LIB ${SOURCES} ${HEADERS})
-target_link_libraries(${PROJECT_NAME}_LIB ${CERES_LIBRARIES})
+add_library(${PROJECT_NAME}_LIB ${SOURCES})
+target_link_libraries(${PROJECT_NAME}_LIB PUBLIC Ceres::ceres 
+  ${OpenCV_LIBRARIES} fmt::fmt cv_bridge::cv_bridge Eigen3::Eigen rclcpp::rclcpp image_transport::image_transport
+  tf2::tf2 tf2_geometry_msgs::tf2_geometry_msgs pcl_common pcl_ros ${events_repackaging_msgs_TARGETS} ${event_camera_msgs_TARGETS})
+target_include_directories(${PROJECT_NAME}_LIB PRIVATE include PUBLIC ${minkindr_conversions_INCLUDE_DIRS} ${minkindr_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS} ${pcl_ros_INCLUDE_DIRS})
 
+
+add_library(esvo2_Mapping src/esvo2_Mapping.cpp)
+target_link_libraries(esvo2_Mapping ${PROJECT_NAME}_LIB image_transport::image_transport ${events_repackaging_msgs_TARGETS} ${event_camera_msgs_TARGETS} ${event_camera_codecs_TARGETS})
+target_include_directories(esvo2_Mapping PRIVATE include)
 
 # Node esvo2_Mapping
-cs_add_executable(esvo2_Mapping src/esvo2_MappingNode.cpp
-    src/esvo2_Mapping.cpp include/esvo2_core/esvo2_Mapping.h)
-target_link_libraries(esvo2_Mapping ${PROJECT_NAME}_LIB
-    ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${CERES_LIBRARIES}  yaml-cpp)
+# cs_add_executable(esvo2_Mapping src/esvo2_MappingNode.cpp
+#    src/esvo2_Mapping.cpp include/esvo2_core/esvo2_Mapping.h)
+# target_link_libraries(esvo2_Mapping ${PROJECT_NAME}_LIB
+#    ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${CERES_LIBRARIES}  yaml-cpp)
 
 # Node esvo2_Tracking
-cs_add_executable(esvo2_Tracking src/esvo2_TrackingNode.cpp
-    src/esvo2_Tracking.cpp include/esvo2_core/esvo2_Tracking.h)
-target_link_libraries(esvo2_Tracking ${PROJECT_NAME}_LIB
-    ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} yaml-cpp)
+# cs_add_executable(esvo2_Tracking src/esvo2_TrackingNode.cpp
+#    src/esvo2_Tracking.cpp include/esvo2_core/esvo2_Tracking.h)
+# target_link_libraries(esvo2_Tracking ${PROJECT_NAME}_LIB
+#    ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} yaml-cpp)
+
+install(TARGETS
+  ${PROJECT_NAME}_LIB
+  esvo2_Mapping
+  DESTINATION lib)
+  if(BUILD_TESTING)
+  find_package(ament_cmake REQUIRED)
+  find_package(ament_cmake_copyright REQUIRED)
+  find_package(ament_cmake_cppcheck REQUIRED)
+  find_package(ament_cmake_cpplint REQUIRED)
+  find_package(ament_cmake_clang_format REQUIRED)
+  find_package(ament_cmake_flake8 REQUIRED)
+  find_package(ament_cmake_lint_cmake REQUIRED)
+  find_package(ament_cmake_pep257 REQUIRED)
+  find_package(ament_cmake_xmllint REQUIRED)
+
+  ament_copyright()
+  ament_cppcheck(LANGUAGE c++)
+  ament_cpplint(FILTERS "-build/include,-runtime/indentation_namespace")
+  ament_clang_format()
+  ament_flake8()
+  ament_lint_cmake()
+  ament_pep257()
+  ament_xmllint()
+endif()
+
+
+ament_package()

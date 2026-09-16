@@ -1,20 +1,18 @@
 #ifndef ESVO2_CORE_CORE_EVENTMATCHPAIR_H
 #define ESVO2_CORE_CORE_EVENTMATCHPAIR_H
 
-#include <vector>
-#include <esvo2_core/tools/utils.h>
+#include <deque>
 #include <esvo2_core/container/CameraSystem.h>
 #include <esvo2_core/container/TimeSurfaceObservation.h>
-#include <deque>
+#include <esvo2_core/tools/utils.h>
+#include <rclcpp/rclcpp.hpp>
+#include <vector>
 
-namespace esvo2_core
-{
+namespace esvo2_core {
 using namespace container;
 using namespace tools;
-namespace core
-{
-struct EventMatchPair
-{
+namespace core {
+struct EventMatchPair {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   EventMatchPair() {}
@@ -24,7 +22,7 @@ struct EventMatchPair
   // rectified_event coordinate (left, right)
   Eigen::Vector2d x_left_, x_right_;
   // timestamp
-  ros::Time t_;
+  timestamp_t t_;
   // pose of virtual view (T_world_virtual)
   Transformation trans_;
   // inverse depth
@@ -45,7 +43,7 @@ struct EventMatchPair
   double ln_depth;
   vector<double> costs_;
 };
-}
-}
+} // namespace core
+} // namespace esvo2_core
 
-#endif //ESVO2_CORE_CORE_EVENTMATCHPAIR_H
+#endif // ESVO2_CORE_CORE_EVENTMATCHPAIR_H

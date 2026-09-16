@@ -1,33 +1,22 @@
 #include <esvo2_core/core/RegProblemSolverLM.h>
 #include <esvo2_core/tools/cayley.h>
 
-namespace esvo2_core
-{
-namespace core
-{
+namespace esvo2_core {
+namespace core {
 RegProblemSolverLM::RegProblemSolverLM(
-  esvo2_core::CameraSystem::Ptr &camSysPtr,
-  shared_ptr<RegProblemConfig> &rpConfigPtr,
-  esvo2_core::core::RegProblemType rpType,
-  size_t numThread):
-  camSysPtr_(camSysPtr),
-  rpConfigPtr_(rpConfigPtr),
-  rpType_(rpType),
-  NUM_THREAD_(numThread),
-  bPrint_(false),
-  bVisualize_(true)
-{
-  if(rpType_ == REG_NUMERICAL)
-  {
+    esvo2_core::CameraSystem::Ptr &camSysPtr,
+    shared_ptr<RegProblemConfig> &rpConfigPtr,
+    esvo2_core::core::RegProblemType rpType, size_t numThread)
+    : camSysPtr_(camSysPtr), rpConfigPtr_(rpConfigPtr), rpType_(rpType),
+      NUM_THREAD_(numThread), bPrint_(false), bVisualize_(true) {
+  if (rpType_ == REG_NUMERICAL) {
     numDiff_regProblemPtr_ =
-      std::make_shared<Eigen::NumericalDiff<RegProblemLM> >(camSysPtr_, rpConfigPtr_, NUM_THREAD_);
-  }
-  else if(rpType_ == REG_ANALYTICAL)
-  {
-    regProblemPtr_ = std::make_shared<RegProblemLM>(camSysPtr_, rpConfigPtr_, NUM_THREAD_);
-  }
-  else
-  {
+        std::make_shared<Eigen::NumericalDiff<RegProblemLM>>(
+            camSysPtr_, rpConfigPtr_, NUM_THREAD_);
+  } else if (rpType_ == REG_ANALYTICAL) {
+    regProblemPtr_ =
+        std::make_shared<RegProblemLM>(camSysPtr_, rpConfigPtr_, NUM_THREAD_);
+  } else {
     LOG(ERROR) << "Wrong Registration Problem Type is assigned!!!";
     exit(-1);
   }
@@ -39,27 +28,25 @@ RegProblemSolverLM::RegProblemSolverLM(
   lmStatics_.nIter_ = 0;
 }
 
-RegProblemSolverLM::~RegProblemSolverLM()
-{}
+RegProblemSolverLM::~RegProblemSolverLM() {}
 
-bool RegProblemSolverLM::resetRegProblem(RefFrame* ref, CurFrame* cur)
-{
-  if( ref->vPointXYZPtr_.size() < rpConfigPtr_->BATCH_SIZE_ )
-  {
-    LOG(INFO) << "resetRegProblem RESET fails for no enough point cloud in the local map.";
+bool RegProblemSolverLM::resetRegProblem(RefFrame *ref, CurFrame *cur) {
+  if (ref->vPointXYZPtr_.size() < rpConfigPtr_->BATCH_SIZE_) {
+    LOG(INFO) << "resetRegProblem RESET fails for no enough point cloud in the "
+                 "local map.";
     LOG(INFO) << "The system will be re-initialized";
     return false;
   }
   //  LOG(INFO) << "resetRegProblem RESET succeeds.";
-  if(rpType_ == REG_NUMERICAL)
-  {
+  if (rpType_ == REG_NUMERICAL) {
     numDiff_regProblemPtr_->setProblem(ref, cur, false);
-//    LOG(INFO) << "numDiff_regProblemPtr_->setProblem(ref, cur, false) -----------------";
+    //    LOG(INFO) << "numDiff_regProblemPtr_->setProblem(ref, cur, false)
+    //    -----------------";
   }
-  if(rpType_ == REG_ANALYTICAL)
-  {
+  if (rpType_ == REG_ANALYTICAL) {
     regProblemPtr_->setProblem(ref, cur, true);
-//    LOG(INFO) << "regProblemPtr_->setProblem(ref, cur, true) -----------------";
+    //    LOG(INFO) << "regProblemPtr_->setProblem(ref, cur, true)
+    //    -----------------";
   }
 
   lmStatics_.nPoints_ = 0;
@@ -68,33 +55,35 @@ bool RegProblemSolverLM::resetRegProblem(RefFrame* ref, CurFrame* cur)
   return true;
 }
 
-
-bool RegProblemSolverLM::resetRegProblem(shared_ptr<RegProblemConfig> &rpConfigPtr, CameraSystem::Ptr& camSysPtr, RefFrame* ref, CurFrame* cur)
-{
+bool RegProblemSolverLM::resetRegProblem(
+    shared_ptr<RegProblemConfig> &rpConfigPtr, CameraSystem::Ptr &camSysPtr,
+    RefFrame *ref, CurFrame *cur) {
   rpConfigPtr_ = rpConfigPtr;
   camSysPtr_ = camSysPtr;
 
-  if( ref->vPointXYZPtr_.size() < rpConfigPtr_->BATCH_SIZE_ )
-  {
-    LOG(INFO) << "resetRegProblem RESET fails for no enough point cloud in the local map.";
+  if (ref->vPointXYZPtr_.size() < rpConfigPtr_->BATCH_SIZE_) {
+    LOG(INFO) << "resetRegProblem RESET fails for no enough point cloud in the "
+                 "local map.";
     LOG(INFO) << "The system will be re-initialized";
     return false;
   }
   //  LOG(INFO) << "resetRegProblem RESET succeeds.";
-  if(rpType_ == REG_NUMERICAL)
-  {
+  if (rpType_ == REG_NUMERICAL) {
     numDiff_regProblemPtr_ =
-      std::make_shared<Eigen::NumericalDiff<RegProblemLM> >(camSysPtr_, rpConfigPtr_, NUM_THREAD_);
-    
+        std::make_shared<Eigen::NumericalDiff<RegProblemLM>>(
+            camSysPtr_, rpConfigPtr_, NUM_THREAD_);
+
     numDiff_regProblemPtr_->setProblem(ref, cur, false);
-//    LOG(INFO) << "numDiff_regProblemPtr_->setProblem(ref, cur, false) -----------------";
+    //    LOG(INFO) << "numDiff_regProblemPtr_->setProblem(ref, cur, false)
+    //    -----------------";
   }
-  if(rpType_ == REG_ANALYTICAL)
-  {
-    regProblemPtr_ = std::make_shared<RegProblemLM>(camSysPtr_, rpConfigPtr_, NUM_THREAD_);
+  if (rpType_ == REG_ANALYTICAL) {
+    regProblemPtr_ =
+        std::make_shared<RegProblemLM>(camSysPtr_, rpConfigPtr_, NUM_THREAD_);
 
     regProblemPtr_->setProblem(ref, cur, true);
-//    LOG(INFO) << "regProblemPtr_->setProblem(ref, cur, true) -----------------";
+    //    LOG(INFO) << "regProblemPtr_->setProblem(ref, cur, true)
+    //    -----------------";
   }
 
   lmStatics_.nPoints_ = 0;
@@ -103,9 +92,9 @@ bool RegProblemSolverLM::resetRegProblem(shared_ptr<RegProblemConfig> &rpConfigP
   return true;
 }
 
-bool RegProblemSolverLM::solve_numerical()
-{
-  Eigen::LevenbergMarquardt<Eigen::NumericalDiff<RegProblemLM>, double> lm(*numDiff_regProblemPtr_.get());
+bool RegProblemSolverLM::solve_numerical() {
+  Eigen::LevenbergMarquardt<Eigen::NumericalDiff<RegProblemLM>, double> lm(
+      *numDiff_regProblemPtr_.get());
   lm.resetParameters();
   lm.parameters.ftol = 1e-3;
   lm.parameters.xtol = 1e-3;
@@ -113,16 +102,17 @@ bool RegProblemSolverLM::solve_numerical()
 
   size_t iteration = 0;
   size_t nfev = 0;
-  while(true)
-  {
-    if(iteration >= rpConfigPtr_->MAX_ITERATION_)
+  while (true) {
+    if (iteration >= rpConfigPtr_->MAX_ITERATION_)
       break;
     numDiff_regProblemPtr_->setStochasticSampling(
-      (iteration % numDiff_regProblemPtr_->numBatches_) * rpConfigPtr_->BATCH_SIZE_, rpConfigPtr_->BATCH_SIZE_);
+        (iteration % numDiff_regProblemPtr_->numBatches_) *
+            rpConfigPtr_->BATCH_SIZE_,
+        rpConfigPtr_->BATCH_SIZE_);
     Eigen::VectorXd x(6);
     x.fill(0.0);
-    if(lm.minimizeInit(x) == Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
-    {
+    if (lm.minimizeInit(x) ==
+        Eigen::LevenbergMarquardtSpace::ImproperInputParameters) {
       LOG(ERROR) << "ImproperInputParameters for LM (Tracking)." << std::endl;
       return false;
     }
@@ -134,40 +124,46 @@ bool RegProblemSolverLM::solve_numerical()
     nfev += lm.nfev;
 
     /*************************** Visualization ************************/
-    if(bVisualize_)// will slow down the tracker's performance a little bit
+    if (bVisualize_) // will slow down the tracker's performance a little bit
     {
       size_t width = camSysPtr_->cam_left_ptr_->width_;
       size_t height = camSysPtr_->cam_left_ptr_->height_;
-      cv::Mat reprojMap_left = cv::Mat(cv::Size(width, height), CV_8UC1, cv::Scalar(0));
-      cv::eigen2cv(numDiff_regProblemPtr_->cur_->pTsObs_->TS_negative_left_, reprojMap_left);
+      cv::Mat reprojMap_left =
+          cv::Mat(cv::Size(width, height), CV_8UC1, cv::Scalar(0));
+      cv::eigen2cv(numDiff_regProblemPtr_->cur_->pTsObs_->TS_negative_left_,
+                   reprojMap_left);
       reprojMap_left.convertTo(reprojMap_left, CV_8UC1);
       cv::cvtColor(reprojMap_left, reprojMap_left, CV_GRAY2BGR);
 
       // project 3D points to current frame
-      Eigen::Matrix3d R_cur_ref =  numDiff_regProblemPtr_->R_.transpose();
-      Eigen::Vector3d t_cur_ref = -numDiff_regProblemPtr_->R_.transpose() * numDiff_regProblemPtr_->t_;
+      Eigen::Matrix3d R_cur_ref = numDiff_regProblemPtr_->R_.transpose();
+      Eigen::Vector3d t_cur_ref =
+          -numDiff_regProblemPtr_->R_.transpose() * numDiff_regProblemPtr_->t_;
 
-      size_t numVisualization = std::min(numDiff_regProblemPtr_->ResItems_.size(), (size_t)2000);
-      for(size_t i = 0; i < numVisualization; i++)
-      {
-        ResidualItem & ri = numDiff_regProblemPtr_->ResItems_[i];
+      size_t numVisualization =
+          std::min(numDiff_regProblemPtr_->ResItems_.size(), (size_t)2000);
+      for (size_t i = 0; i < numVisualization; i++) {
+        ResidualItem &ri = numDiff_regProblemPtr_->ResItems_[i];
         Eigen::Vector3d p_3D = R_cur_ref * ri.p_ + t_cur_ref;
         Eigen::Vector2d p_img_left;
         camSysPtr_->cam_left_ptr_->world2Cam(p_3D, p_img_left);
         double z = ri.p_[2];
         visualizor_.DrawPoint(1.0 / z, 1.0 / z_min_, 1.0 / z_max_,
-                              Eigen::Vector2d(p_img_left(0), p_img_left(1)), reprojMap_left);
+                              Eigen::Vector2d(p_img_left(0), p_img_left(1)),
+                              reprojMap_left);
       }
-      std_msgs::Header header;
-      header.stamp = numDiff_regProblemPtr_->cur_->t_;
-      sensor_msgs::ImagePtr msg = cv_bridge::CvImage(header, "bgr8", reprojMap_left).toImageMsg();
+      std_msgs::msg::Header header;
+      header.stamp =
+          rclcpp::Time(numDiff_regProblemPtr_->cur_->t_, RCL_ROS_TIME);
+      auto msg =
+          cv_bridge::CvImage(header, "bgr8", reprojMap_left).toImageMsg();
       reprojMap_pub_->publish(msg);
     }
     /*************************** Visualization ************************/
-    if(status == 2 || status == 3)
+    if (status == 2 || status == 3)
       break;
   }
-//  LOG(INFO) << "LM Finished ...................";
+  //  LOG(INFO) << "LM Finished ...................";
   numDiff_regProblemPtr_->setPose();
   lmStatics_.nPoints_ = numDiff_regProblemPtr_->numPoints_;
   lmStatics_.nfev_ = nfev;
@@ -175,8 +171,7 @@ bool RegProblemSolverLM::solve_numerical()
   return 0;
 }
 
-bool RegProblemSolverLM::solve_analytical()
-{
+bool RegProblemSolverLM::solve_analytical() {
   Eigen::LevenbergMarquardt<RegProblemLM, double> lm(*regProblemPtr_.get());
   lm.resetParameters();
   lm.parameters.ftol = 1e-3;
@@ -185,16 +180,16 @@ bool RegProblemSolverLM::solve_analytical()
 
   size_t iteration = 0;
   size_t nfev = 0;
-  while(true)
-  {
-    if(iteration >= rpConfigPtr_->MAX_ITERATION_)
+  while (true) {
+    if (iteration >= rpConfigPtr_->MAX_ITERATION_)
       break;
     regProblemPtr_->setStochasticSampling(
-      (iteration % regProblemPtr_->numBatches_) * rpConfigPtr_->BATCH_SIZE_, rpConfigPtr_->BATCH_SIZE_);
+        (iteration % regProblemPtr_->numBatches_) * rpConfigPtr_->BATCH_SIZE_,
+        rpConfigPtr_->BATCH_SIZE_);
     Eigen::VectorXd x(6);
     x.fill(0.0);
-    if(lm.minimizeInit(x) == Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
-    {
+    if (lm.minimizeInit(x) ==
+        Eigen::LevenbergMarquardtSpace::ImproperInputParameters) {
       LOG(ERROR) << "ImproperInputParameters for LM (Tracking)." << std::endl;
       return false;
     }
@@ -203,40 +198,44 @@ bool RegProblemSolverLM::solve_analytical()
 
     iteration++;
     nfev += lm.nfev;
-    if(status == 2 || status == 3)
+    if (status == 2 || status == 3)
       break;
   }
 
   /*************************** Visualization ************************/
-  if(bVisualize_) // will slow down the tracker a little bit
+  if (bVisualize_) // will slow down the tracker a little bit
   {
     size_t width = camSysPtr_->cam_left_ptr_->width_;
     size_t height = camSysPtr_->cam_left_ptr_->height_;
-    cv::Mat reprojMap_left = cv::Mat(cv::Size(width, height), CV_8UC1, cv::Scalar(0));
-    cv::eigen2cv(regProblemPtr_->cur_->pTsObs_->TS_negative_left_, reprojMap_left);
+    cv::Mat reprojMap_left =
+        cv::Mat(cv::Size(width, height), CV_8UC1, cv::Scalar(0));
+    cv::eigen2cv(regProblemPtr_->cur_->pTsObs_->TS_negative_left_,
+                 reprojMap_left);
     reprojMap_left.convertTo(reprojMap_left, CV_8UC1);
     cv::cvtColor(reprojMap_left, reprojMap_left, CV_GRAY2BGR);
 
     // project 3D points to current frame
-    Eigen::Matrix3d R_cur_ref =  regProblemPtr_->R_.transpose();
-    Eigen::Vector3d t_cur_ref = -regProblemPtr_->R_.transpose() * regProblemPtr_->t_;
+    Eigen::Matrix3d R_cur_ref = regProblemPtr_->R_.transpose();
+    Eigen::Vector3d t_cur_ref =
+        -regProblemPtr_->R_.transpose() * regProblemPtr_->t_;
 
-    size_t numVisualization = std::min(regProblemPtr_->ResItems_.size(), (size_t)2000);
-    for(size_t i = 0; i < numVisualization; i++)
-    {
-      if(regProblemPtr_->VisualizationIdx_[i] == 0)
+    size_t numVisualization =
+        std::min(regProblemPtr_->ResItems_.size(), (size_t)2000);
+    for (size_t i = 0; i < numVisualization; i++) {
+      if (regProblemPtr_->VisualizationIdx_[i] == 0)
         continue;
-      ResidualItem & ri = regProblemPtr_->ResItems_[i];
+      ResidualItem &ri = regProblemPtr_->ResItems_[i];
       Eigen::Vector3d p_3D = R_cur_ref * ri.p_ + t_cur_ref;
       Eigen::Vector2d p_img_left;
       camSysPtr_->cam_left_ptr_->world2Cam(p_3D, p_img_left);
       double z = ri.p_[2];
       visualizor_.DrawPoint(1.0 / z, 1.0 / z_min_, 1.0 / z_max_,
-                            Eigen::Vector2d(p_img_left(0), p_img_left(1)), reprojMap_left, 2);
+                            Eigen::Vector2d(p_img_left(0), p_img_left(1)),
+                            reprojMap_left, 2);
     }
-    std_msgs::Header header;
-    header.stamp = regProblemPtr_->cur_->t_;
-    sensor_msgs::ImagePtr msg = cv_bridge::CvImage(header, "bgr8", reprojMap_left).toImageMsg();
+    std_msgs::msg::Header header;
+    header.stamp = rclcpp::Time(regProblemPtr_->cur_->t_, RCL_ROS_TIME);
+    auto msg = cv_bridge::CvImage(header, "bgr8", reprojMap_left).toImageMsg();
     reprojMap_pub_->publish(msg);
   }
   /*************************** Visualization ************************/
@@ -249,11 +248,9 @@ bool RegProblemSolverLM::solve_analytical()
 }
 
 void RegProblemSolverLM::setRegPublisher(
-  image_transport::Publisher* reprojMap_pub)
-{
+    image_transport::Publisher *reprojMap_pub) {
   reprojMap_pub_ = reprojMap_pub;
 }
 
-}//namespace core
-}//namespace esvo2_core
-
+} // namespace core
+} // namespace esvo2_core
