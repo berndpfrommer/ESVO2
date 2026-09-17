@@ -1,29 +1,32 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>image_representation</name>
+  <name>esvo2_image_representation</name>
   <version>0.0.0</version>
   <description>The image_representation package.</description>
-  <maintainer email="eeyzhou@ust.hk">Yi Zhou</maintainer>
+  <maintainer email="bernd@eventvisionresearch.com">Bernd Pfrommer</maintainer>
+  <license>Apache License 2.0</license>
 
-  <!-- One license tag required, multiple allowed, one license per tag -->
-  <!-- Commonly used license strings: -->
-  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
-  <license>GPLv3</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_ros</buildtool_depend>
+  <buildtool_depend>ament_cmake_auto</buildtool_depend>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  <buildtool_depend>catkin_simple</buildtool_depend>
-
-  <depend>roscpp</depend>
-  <depend>eigen_catkin</depend>
-  <depend>sensor_msgs</depend>
   <depend>cv_bridge</depend>
+  <depend>event_camera_msgs</depend>
+  <depend>event_camera_codecs</depend>  
   <depend>image_transport</depend>
-  <depend>glog_catkin</depend>
-  <depend>gflags_catkin</depend>
-  <depend>dvs_msgs</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
+  <depend>sensor_msgs</depend>
 
-  <!-- The export tag contains other, unspecified, tags -->
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+  <test_depend>ament_cmake_clang_format</test_depend>
+
+    
   <export>
-    <!-- Other tools can request additional information be placed here -->
+    <!-- this is crucial else the package will not be registered! -->
+    <build_type>ament_cmake</build_type>
   </export>
+
 </package>
